@@ -1,7 +1,7 @@
 import pygame
 import sys
-from scripts.entities import PhysicsEntity
-from scripts.utils import load_image, load_images
+from scripts.entities import PhysicsEntity, Player
+from scripts.utils import load_image, load_images, Animation
 from scripts.tilemap import Tilemap
 from scripts.clouds import Clouds
 
@@ -21,10 +21,16 @@ class Game:
       "stone" : load_images("tiles/stone"),
       "player" : load_image("entities/player.png"),
       "background" : load_image("background.png"),
-      "clouds" : load_images("clouds")
+      "clouds" : load_images("clouds"),
+      "player/idle" : Animation(load_images("entities/player/idle"), 6),
+      "player/run" : Animation(load_images("entities/player/run"), 4),
+      "player/jump" : Animation(load_images("entities/player/jump")),
+      "player/slide" : Animation(load_images("entities/player/slide")),
+      "player/wall_slide" : Animation(load_images("entities/player/wall_slide"))
+
     }
     self.clouds = Clouds(self.assets["clouds"], count=16)
-    self.player = PhysicsEntity(self, "player", (70, 70), (8, 15))
+    self.player = Player(self, (70, 70), (8, 15))
     self.tilemap = Tilemap(self, tile_size=16)
     self.camera = [0, 0]
 
@@ -50,6 +56,8 @@ class Game:
         if event.type == pygame.QUIT:
           sys.exit()
         if event.type == pygame.KEYUP:
+          if event.key == pygame.K_ESCAPE:
+            sys.exit()
           if event.key == pygame.K_LEFT:
             self.movement[0] = False
           if event.key == pygame.K_RIGHT:
