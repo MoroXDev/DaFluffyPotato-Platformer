@@ -27,10 +27,9 @@ class Game:
       "player/jump" : Animation(load_images("entities/player/jump")),
       "player/slide" : Animation(load_images("entities/player/slide")),
       "player/wall_slide" : Animation(load_images("entities/player/wall_slide"))
-
     }
     self.clouds = Clouds(self.assets["clouds"], count=16)
-    self.player = Player(self, (70, 70), (8, 15))
+    self.player = Player(self, (70, 70), (8, 15)) #size może wynosić tylko 16x16 bo tile są sprawdzane do okoła pozycji gracza zakłając, że wszystko jest w 16x16
     self.tilemap = Tilemap(self, tile_size=16)
     self.camera = [0, 0]
 
