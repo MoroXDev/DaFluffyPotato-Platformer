@@ -16,6 +16,7 @@ class Editor:
     self.movement = [False, False, False, False]
     self.tilemap = Tilemap(self, 16)
     self.camera = [0, 0]
+    self.on_grid = True
 
     self.assets = {
       "decor" : load_images("tiles/decor"),
@@ -31,6 +32,11 @@ class Editor:
     self.right_clicking = False
     self.shifting = False
 
+    try:
+      self.tilemap.load("map.json")
+    except FileNotFoundError:
+      pass
+  
   def run(self):
     while True:
       self.display.fill((0, 0, 0))
@@ -42,31 +48,42 @@ class Editor:
       self.camera[0] += self.movement[1] - self.movement[0]
       self.camera[1] += self.movement[3] - self.movement[2]
 
-      if self.left_clicking:
+      if self.left_clicking and self.on_grid:
         self.tilemap.tilemap[str(tile_pos[0]) + ";" + str(tile_pos[1])] = {"type" : self.tile_list[self.tile_group], "variant" : self.tile_variant, "pos" : tile_pos}
-      if self.right_clicking:
+      
+      if self.right_clicking and self.on_grid:
         tile_loc = str(tile_pos[0]) + ";" + str(tile_pos[1])
         if tile_loc in self.tilemap.tilemap:
           del self.tilemap.tilemap[tile_loc]
+
+      if self.right_clicking and not self.on_grid:
+        for tile in self.tilemap.offgrid_tiles.copy():
+          tile_img = self.assets[tile["type"]][tile["variant"]]
+          tile_rect = pygame.Rect(tile["pos"][0], tile["pos"][1], tile_img.get_width(), tile_img.get_height())
+          if tile_rect.collidepoint((mouse_pos[0] + self.camera[0], mouse_pos[1] + self.camera[1])):
+            self.tilemap.offgrid_tiles.remove(tile)
 
       current_tile_img = self.assets[self.tile_list[self.tile_group]][self.tile_variant].copy()
       current_tile_img.set_alpha(100)
 
       self.tilemap.render(self.display, render_camera)
-      self.display.blit(current_tile_img, (tile_pos[0] * self.tilemap.tile_size - render_camera[0], tile_pos[1] * self.tilemap.tile_size - render_camera[1]))
+      if self.on_grid:
+        self.display.blit(current_tile_img, (tile_pos[0] * self.tilemap.tile_size - render_camera[0], tile_pos[1] * self.tilemap.tile_size - render_camera[1]))
+      else:
+        self.display.blit(current_tile_img, mouse_pos)
 
       for event in pygame.event.get():
         if event.type == pygame.QUIT:
           sys.exit()
 
         if event.type == pygame.KEYUP:
-          if event.key == pygame.K_LEFT:
+          if event.key == pygame.K_a:
             self.movement[0] = False
-          if event.key == pygame.K_RIGHT:
+          if event.key == pygame.K_d:
             self.movement[1] = False
-          if event.key == pygame.K_UP:
+          if event.key == pygame.K_w:
             self.movement[2] = False
-          if event.key == pygame.K_DOWN:
+          if event.key == pygame.K_s:
             self.movement[3] = False
           if event.key == pygame.K_LSHIFT:
             self.shifting = False
@@ -74,20 +91,27 @@ class Editor:
         if event.type == pygame.KEYDOWN:
           if event.key == pygame.K_ESCAPE:
             sys.exit()
-          if event.key == pygame.K_LEFT:
+          if event.key == pygame.K_a:
             self.movement[0] = True
-          if event.key == pygame.K_RIGHT:
+          if event.key == pygame.K_d:
             self.movement[1] = True
-          if event.key == pygame.K_UP:
+          if event.key == pygame.K_w:
             self.movement[2] = True
-          if event.key == pygame.K_DOWN:
+          if event.key == pygame.K_s:
             self.movement[3] = True
           if event.key == pygame.K_LSHIFT:
             self.shifting = True
+          if event.key == pygame.K_g:
+            self.on_grid = not self.on_grid
+          if event.key == pygame.K_o:
+            self.tilemap.save("map.json")
 
         if event.type == pygame.MOUSEBUTTONDOWN:
           if event.button == pygame.BUTTON_LEFT:
             self.left_clicking = True
+            if not self.on_grid:
+              self.tilemap.offgrid_tiles.append({"type" : self.tile_list[self.tile_group], "variant" : self.tile_variant, "pos" : (mouse_pos[0] + self.camera[0], mouse_pos[1] + self.camera[1])})
+
           if event.button == pygame.BUTTON_RIGHT:
             self.right_clicking = True
 
