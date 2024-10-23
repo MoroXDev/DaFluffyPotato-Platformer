@@ -1,5 +1,15 @@
 import pygame
 import json
+AUTOTILE_MAP = {
+  tuple(sorted([(1, 0), (0, 1), (1, 1)])) : 0,
+  tuple(sorted([(0, 1)])) : 1,
+  tuple(sorted([(-1, 0), (0, 1), (-1, 1)])) : 2,
+  tuple(sorted([(-1, 0), (-1, -1), (-1, 1), (0, 1), (0, -1)])) : 3,
+  tuple(sorted([(-1, 0), (0, -1), (-1, -1)])) : 4,
+  tuple(sorted([(1, 0), (0, -1), (1, -1)])) : 6,
+  tuple(sorted([(1, 0), (1, 1), (1, -1), (0, 1), (0, -1)])) : 7,
+  tuple(sorted([(1, 0), (1, 1), (1, -1), (-1, 0), (-1, 1), (-1, -1), (0, 1), (0, -1)])) : 8,
+}
 NEIGHBOUR_OFFSET = [(0, 0), (1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (0, 1), (0, -1), (-1, 0)]
 PHYSCIS_TILES = {"grass", "stone"}
 AUTOTILE_TYPES = {"grass", "stone"}
@@ -30,7 +40,6 @@ class Tilemap:
   def render(self, surf, offset = (0, 0)):
     for tile in self.offgrid_tiles:
       surf.blit(self.game.assets[tile["type"]][tile["variant"]], (tile["pos"][0] - offset[0], tile["pos"][1] - offset[1]))
-      print(tile)
 
     for x in range(offset[0] // self.tile_size, (offset[0] + surf.get_width()) // self.tile_size + 1):
       for y in range(offset[1] // self.tile_size, (offset[1] + surf.get_height()) // self.tile_size + 1):
@@ -59,4 +68,8 @@ class Tilemap:
       for shift in ((0, 1), (0, -1), (1, 0), (-1, 0)):
         check_loc = str(tile["pos"][0] + shift[0]) + ";" + str(tile["pos"][1] + shift[1])
         if check_loc in self.tilemap:
-          pass
+          if self.tilemap[check_loc]["type"] == tile["type"]:
+            neighbours.add(shift)
+      neighbours = tuple(sorted(neighbours))
+      if (tile["type"] in AUTOTILE_TYPES) and (neighbours in AUTOTILE_MAP):
+        tile["variant"] = AUTOTILE_MAP[neighbours]

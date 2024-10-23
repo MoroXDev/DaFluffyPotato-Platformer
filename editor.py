@@ -105,6 +105,8 @@ class Editor:
             self.on_grid = not self.on_grid
           if event.key == pygame.K_o:
             self.tilemap.save("map.json")
+          if event.key == pygame.K_t:
+            self.tilemap.autotile()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
           if event.button == pygame.BUTTON_LEFT:
