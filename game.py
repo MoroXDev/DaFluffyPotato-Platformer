@@ -31,6 +31,7 @@ class Game:
     self.clouds = Clouds(self.assets["clouds"], count=16)
     self.player = Player(self, (70, 70), (8, 15)) #size może wynosić tylko 16x16 bo tile są sprawdzane do okoła pozycji gracza zakłając, że wszystko jest w 16x16
     self.tilemap = Tilemap(self, tile_size=16)
+    self.tilemap.load("map.json")
     self.camera = [0, 0]
 
   def run(self):
