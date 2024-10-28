@@ -31,7 +31,8 @@ class Game:
       "player/slide" : Animation(load_images("entities/player/slide")),
       "player/wall_slide" : Animation(load_images("entities/player/wall_slide")),
       "particle/leaf" : Animation(load_images("particles/leaf"), 20, False),
-      "particle/particle" : Animation(load_images("particles/particle"), 20, False)
+      "particle/particle" : Animation(load_images("particles/particle"), 20, False),
+      "spawners" : load_images("tiles/spawners")
     }
     self.clouds = Clouds(self.assets["clouds"], count=16)
     self.player = Player(self, (70, 70), (8, 15)) #size może wynosić tylko 16x16 bo tile są sprawdzane do okoła pozycji gracza zakłając, że wszystko jest w 16x16
@@ -41,8 +42,12 @@ class Game:
 
     self.particles = []
     self.leaf_spawners = []
-    for tree in self.tilemap.extract([('large_decor', 2)]):
+    for tree in self.tilemap.extract([('large_decor', 2)], True):
       self.leaf_spawners.append(pygame.Rect(4 + tree["pos"][0], 4 + tree["pos"][1], 23, 13))
+
+    for spawner in self.tilemap.extract([("spawners", 0), ("spawners", 1)]):
+      if spawner["variant"] == 0: self.player.pos = spawner["pos"]
+      
 
   def run(self):
     while True:

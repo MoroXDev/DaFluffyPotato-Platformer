@@ -22,7 +22,8 @@ class Editor:
       "decor" : load_images("tiles/decor"),
       "grass" : load_images("tiles/grass"),
       "stone" : load_images("tiles/stone"),
-      "large_decor" : load_images("tiles/large_decor")
+      "large_decor" : load_images("tiles/large_decor"),
+      "spawners" : load_images("tiles/spawners")
     }    
 
     self.tile_list = list(self.assets)
