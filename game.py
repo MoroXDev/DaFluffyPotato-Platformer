@@ -1,6 +1,6 @@
 import pygame
 import sys
-from scripts.entities import PhysicsEntity, Player
+from scripts.entities import Player, Enemy
 from scripts.utils import load_image, load_images, Animation
 from scripts.tilemap import Tilemap
 from scripts.clouds import Clouds
@@ -31,11 +31,14 @@ class Game:
       "player/slide" : Animation(load_images("entities/player/slide")),
       "player/wall_slide" : Animation(load_images("entities/player/wall_slide")),
       "particle/leaf" : Animation(load_images("particles/leaf"), 20, False),
-      "particle/particle" : Animation(load_images("particles/particle"), 20, False),
-      "spawners" : load_images("tiles/spawners")
+      "particle/particle" : Animation(load_images("particles/particle"), 10, False),
+      "spawners" : load_images("tiles/spawners"),
+      "enemy/idle" : Animation(load_images("entities/enemy/idle"), 6),
+      "enemy/run" : Animation(load_images("entities/enemy/run"), 4)
     }
     self.clouds = Clouds(self.assets["clouds"], count=16)
     self.player = Player(self, (70, 70), (8, 15)) #size może wynosić tylko 16x16 bo tile są sprawdzane do okoła pozycji gracza zakłając, że wszystko jest w 16x16
+    self.enemies = []
     self.tilemap = Tilemap(self, tile_size=16)
     self.tilemap.load("map.json")
     self.camera = [0, 0]
@@ -46,8 +49,10 @@ class Game:
       self.leaf_spawners.append(pygame.Rect(4 + tree["pos"][0], 4 + tree["pos"][1], 23, 13))
 
     for spawner in self.tilemap.extract([("spawners", 0), ("spawners", 1)]):
-      if spawner["variant"] == 0: self.player.pos = spawner["pos"]
-      
+      if spawner["variant"] == 0:
+        self.player.pos = spawner["pos"]
+      else:
+        self.enemies.append(Enemy(self, spawner["pos"], (8, 15)))
 
   def run(self):
     while True:
@@ -68,7 +73,7 @@ class Game:
       self.tilemap.render(self.display, render_offset)
       self.player.render(self.display, render_offset)
       
-      for rect in self.leaf_spawners:
+      for rect in self.leaf_spawners: 
         if random.random() < 0.01:
           pos = [rect.x + random.random() * rect.width, rect.y + random.random() * rect.height]
           self.particles.append(Particle(self, "leaf", pos, (-0.1, 0.3)))
@@ -81,6 +86,10 @@ class Game:
         particle.render(self.display, render_offset)
         if kill: 
           self.particles.remove(particle)
+
+      for enemy in self.enemies.copy():
+        enemy.update(self.tilemap, (0, 0))
+        enemy.render(self.display, render_offset)
 
       for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -99,9 +108,11 @@ class Game:
             self.movement[0] = True
           if event.key == pygame.K_RIGHT:
             self.movement[1] = True
+          if event.key == pygame.K_x:
+            self.player.dash()
 
       self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
       pygame.display.update()
       self.clock.tick(60)
 
-Game().run()
+Game().run() 
